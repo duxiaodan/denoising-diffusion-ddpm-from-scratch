@@ -199,8 +199,19 @@ def predict_x0_from_eps(x_t, t, eps, alphas_cumprod):
     x0 = 1/(alphas_bar)**0.5 * (x_t - (1-alphas_bar)**0.5 * eps)
     return x0
 
-# Step 16 - ddpm_p_mean_variance (not yet solved)
-# TODO: implement
+# Step 16 - ddpm_p_mean_variance
+import torch
+import torch.nn.functional as F
+
+def ddpm_p_mean_variance(x_t, t, eps, schedule: dict):
+    # TODO: return (posterior_mean, variance, x0_hat)
+    x0_hat = torch.clip(predict_x0_from_eps(x_t,t,eps,schedule['alphas_cumprod']),0.,1.)
+    alphas = schedule['alphas']
+    alphas_cumprod = schedule['alphas_cumprod']
+    betas = schedule['betas']
+    posterior_mean = 1/(alphas[t][:,None,None,None])**0.5 * (x_t - betas[t][:,None,None,None]/(1-alphas_cumprod[t][:,None,None,None])**0.5 * eps)
+    variance = betas[t][:,None,None,None]
+    return posterior_mean, variance, x0_hat
 
 # Step 17 - ddpm_p_sample (not yet solved)
 # TODO: implement
