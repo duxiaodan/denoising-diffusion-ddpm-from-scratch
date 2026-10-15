@@ -173,8 +173,21 @@ def ddpm_train_step(params: dict, x0, schedule: dict, lr: float = 1e-2, seed: in
             params[name] = p.detach().clone().requires_grad_(True)
     return (params, float(loss))
 
-# Step 14 - train_ddpm (not yet solved)
-# TODO: implement
+# Step 14 - train_ddpm
+import torch
+import torch.nn.functional as F
+
+def train_ddpm(dataset, params: dict, schedule: dict, num_steps: int = 50, batch_size: int = 16, lr: float = 1e-2, seed: int = 0) -> tuple[dict, list]:
+    # TODO: minibatch SGD training loop
+    n = dataset.shape[0]
+    history = []
+    for i in range(num_steps):
+        g = torch.Generator().manual_seed(seed+i)
+        idx = torch.randint(0,n,(batch_size,),generator=g)
+        mini_batch = dataset[idx,:]
+        params, loss = ddpm_train_step(params,mini_batch,schedule,lr,seed+i)
+        history.append(loss)
+    return params, history
 
 # Step 15 - predict_x0_from_eps (not yet solved)
 # TODO: implement
