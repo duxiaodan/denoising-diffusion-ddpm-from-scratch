@@ -152,8 +152,26 @@ def make_blob_dataset(n: int = 128, size: int = 8, seed: int = 0):
     mask  = x_dist_sq+y_dist_sq <= r**2 #n,size,size
     return mask[:,None,:,:].float()
 
-# Step 13 - ddpm_train_step (not yet solved)
-# TODO: implement
+# Step 13 - ddpm_train_step
+import torch
+import torch.nn.functional as F
+
+def ddpm_train_step(params: dict, x0, schedule: dict, lr: float = 1e-2, seed: int = 0) -> tuple[dict, float]:
+    # TODO: sample t,noise -> loss -> SGD on params
+    torch.manual_seed(seed)
+    T = schedule['T']
+    alphas_cumprod = schedule['alphas_cumprod']
+    B = x0.shape[0]
+    t = torch.randint(0,T,(B,))
+    noise = torch.randn_like(x0)
+    loss = diffusion_training_loss(lambda x,t: tiny_unet_forward(x,t,params), x0, t, noise, alphas_cumprod)
+    loss.backward()
+    for name,p in params.items():
+        if p.grad is not None:
+            params[name] = (p-lr*p.grad).detach().requires_grad_(True)
+        else:
+            params[name] = p.detach().clone().requires_grad_(True)
+    return (params, float(loss))
 
 # Step 14 - train_ddpm (not yet solved)
 # TODO: implement
