@@ -213,8 +213,19 @@ def ddpm_p_mean_variance(x_t, t, eps, schedule: dict):
     variance = betas[t][:,None,None,None]
     return posterior_mean, variance, x0_hat
 
-# Step 17 - ddpm_p_sample (not yet solved)
-# TODO: implement
+# Step 17 - ddpm_p_sample
+import torch
+import torch.nn.functional as F
+
+def ddpm_p_sample(x_t, t, params: dict, schedule: dict, noise=None):
+    # TODO: one reverse step x_t -> x_{t-1}
+    eps = tiny_unet_forward(x_t,t,params)
+    mean,var,_ = ddpm_p_mean_variance(x_t,t,eps,schedule)
+    if noise is None:
+        noise = torch.randn_like(x_t)
+    noise = (t!=0)[:,None,None,None].float() * noise
+    x_prev = mean + var**0.5 * noise
+    return x_prev
 
 # Step 18 - ddpm_sample_loop (not yet solved)
 # TODO: implement
